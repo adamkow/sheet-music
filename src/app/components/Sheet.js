@@ -31,9 +31,8 @@ function generateRange(startMidi, endMidi) {
   return out;
 }
 
-function Staff({ label, start, end, focus, onSelect }) {
+function Staff({ label, start, end, focus, pickedNotes, onNoteToggle, onClear }) {
   const keys = useMemo(() => generateRange(start, end), [start, end]);
-  const [selected, setSelected] = useState(null);
   const containerRef = useRef(null);
 
   useEffect(() => {
@@ -53,17 +52,23 @@ function Staff({ label, start, end, focus, onSelect }) {
     }
   }, [start, end, focus]);
 
-  const handleClick = (k) => {
-    setSelected(k);
-    if (onSelect) onSelect(k);
-  };
 
   return (
     <div className="w-full h-full flex flex-col">
-      <div className="mb-3 flex items-center justify-between">
+            <div className="mb-3 flex items-center justify-between">
         <div className="text-xs text-zinc-500">{label}</div>
-        <div className="text-xs text-zinc-600 dark:text-zinc-400">
-          {selected ? `${selected.name}${selected.octave}` : "Tap a line"}
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-zinc-600 dark:text-zinc-400">
+            {pickedNotes.length > 0 ? `${pickedNotes.length} notes` : "Tap a line"}
+          </span>
+          {pickedNotes.length > 0 && (
+            <button
+              onClick={onClear}
+              className="rounded-md bg-zinc-100 px-2 py-0.5 text-xs text-zinc-700 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700"
+            >
+              Clear
+            </button>
+          )}
         </div>
       </div>
 
@@ -73,7 +78,7 @@ function Staff({ label, start, end, focus, onSelect }) {
       >
         <div className="relative">
           {keys.map((k) => {
-            const isSelected = selected?.midi === k.midi;
+            const isPicked = pickedNotes.find((p) => p.midi === k.midi);
             const isOctaveStart = k.name === "C";
             return (
               <button
@@ -81,39 +86,33 @@ function Staff({ label, start, end, focus, onSelect }) {
                 type="button"
                 data-row={k.midi}
                 aria-label={`${k.name}${k.octave}`}
-                onClick={() => handleClick(k)}
-                className={
-                  "group relative block w-full select-none text-left " +
-                  "h-8 focus:outline-none"
-                }
+                onClick={() => onNoteToggle(k)}
+                className="group relative block h-8 w-full select-none text-left focus:outline-none"
               >
-                <div
-                  className={
-                    "absolute inset-0 left-16 rounded-sm transition-colors " +
-                    (isSelected
-                      ? "bg-blue-50/80 dark:bg-blue-950/40"
-                      : "group-hover:bg-zinc-50 dark:group-hover:bg-zinc-900")
-                  }
-                />
+                <div className="absolute inset-0 left-16 rounded-sm transition-colors group-hover:bg-zinc-50 dark:group-hover:bg-zinc-900" />
 
                 <div className="absolute inset-x-0 top-1/2 -translate-y-1/2">
                   <div
                     className={
                       "border-t " +
-                      (isSelected
-                        ? "border-blue-500"
-                        : isOctaveStart
+                      (isOctaveStart
                         ? "border-zinc-400 dark:border-zinc-600"
                         : "border-zinc-200 dark:border-zinc-800")
                     }
                   />
                 </div>
 
+                {isPicked && (
+                  <div className="absolute inset-y-0 left-16 flex items-center justify-center w-[calc(100%-4rem)]">
+                    <div className="h-3 w-3 rounded-full bg-blue-500" />
+                  </div>
+                )}
+
                 <div className="absolute left-0 top-0 flex h-full w-16 items-center justify-end pr-2">
                   <span
                     className={
                       "text-[10px] tabular-nums " +
-                      (isSelected
+                      (isPicked
                         ? "font-semibold text-blue-600 dark:text-blue-400"
                         : k.isSharp
                         ? "text-zinc-500"
@@ -133,7 +132,19 @@ function Staff({ label, start, end, focus, onSelect }) {
   );
 }
 
-export default function Sheet({ onSelect }) {
+export default function Sheet() {
+  const [bassNotes, setBassNotes] = useState([]);
+  const [trebleNotes, setTrebleNotes] = useState([]);
+
+  const handleNoteToggle = (note, staff) => {
+    const [notes, setNotes] = staff === "bass" ? [bassNotes, setBassNotes] : [trebleNotes, setTrebleNotes];
+    if (notes.find((p) => p.midi === note.midi)) {
+      setNotes(notes.filter((p) => p.midi !== note.midi));
+    } else {
+      setNotes([...notes, note]);
+    }
+  };
+
   return (
     <div className="w-full h-full">
       <div className="grid h-full grid-cols-1 gap-6 md:grid-cols-2">
@@ -142,21 +153,23 @@ export default function Sheet({ onSelect }) {
           start={21}
           end={59}
           focus={36}
-          onSelect={onSelect}
+          pickedNotes={bassNotes}
+          onNoteToggle={(note) => handleNoteToggle(note, "bass")}
+          onClear={() => setBassNotes([])}
         />
         <Staff
           label="Treble (C4–C8)"
           start={60}
           end={108}
           focus={72}
-          onSelect={onSelect}
+          pickedNotes={trebleNotes}
+          onNoteToggle={(note) => handleNoteToggle(note, "treble")}
+          onClear={() => setTrebleNotes([])}
         />
       </div>
       <div className="mt-2 flex items-center gap-2 text-xs text-zinc-500">
         <div className="h-2 w-4 border-t-2 border-zinc-400 dark:border-zinc-600" />
         <span>Octave start (C)</span>
-        <div className="h-2 w-4 border-t-2 border-blue-500" />
-        <span>Selected</span>
       </div>
     </div>
   );
