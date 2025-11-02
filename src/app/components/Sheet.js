@@ -80,6 +80,18 @@ function Staff({ label, start, end, focus, pickedNotes, onNoteToggle, onClear })
           {keys.map((k) => {
             const isPicked = pickedNotes.find((p) => p.midi === k.midi);
             const isOctaveStart = k.name === "C";
+            const isStaffLine = [
+              "E4",
+              "G4",
+              "B4",
+              "D5",
+              "F5",
+              "G2",
+              "B2",
+              "D3",
+              "F3",
+              "A3",
+            ].includes(`${k.name}${k.octave}`);
             return (
               <button
                 key={k.midi}
@@ -94,7 +106,7 @@ function Staff({ label, start, end, focus, pickedNotes, onNoteToggle, onClear })
                 <div className="absolute inset-x-0 top-1/2 -translate-y-1/2">
                   <div
                     className={
-                      "border-t " +
+                      (isStaffLine ? "border-t-2 " : "border-t ") +
                       (isOctaveStart
                         ? "border-zinc-400 dark:border-zinc-600"
                         : "border-zinc-200 dark:border-zinc-800")
