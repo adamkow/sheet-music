@@ -88,12 +88,11 @@ function Staff({ label, start, end, focus, pickedNotes, onNoteToggle, onClear, c
         <div className="relative">
           {keys.map((k) => {
             const isPicked = pickedNotes.find((p) => p.midi === k.midi);
-            const isOctaveStart = k.name === "C";
-            const refName = clef === "treble" ? "E" : "G";
-            const refOct = clef === "treble" ? 4 : 2;
-            const stepsFromRef =
-              diatonicNumber(k.name, k.octave) - diatonicNumber(refName, refOct);
-            const isStaffLine = Math.abs(stepsFromRef) % 2 === 0;
+            const isStaffLine = (
+              clef === "treble"
+                ? ["E4", "G4", "B4", "D5", "F5"]
+                : ["G2", "B2", "D3", "F3", "A3"]
+            ).includes(`${k.name}${k.octave}`);
             return (
               <button
                 key={k.midi}
@@ -105,18 +104,16 @@ function Staff({ label, start, end, focus, pickedNotes, onNoteToggle, onClear, c
               >
                 <div className="absolute inset-0 left-16 rounded-sm transition-colors group-hover:bg-zinc-50 dark:group-hover:bg-zinc-900" />
 
-                {isStaffLine && (
-                  <div className="absolute inset-x-0 top-1/2 -translate-y-1/2">
-                    <div
-                      className={
-                        "border-t-2 " +
-                        (isOctaveStart
-                          ? "border-zinc-400 dark:border-zinc-600"
-                          : "border-zinc-200 dark:border-zinc-800")
-                      }
-                    />
-                  </div>
-                )}
+                <div className="absolute inset-x-0 top-1/2 -translate-y-1/2">
+                  <div
+                    className={
+                      (isStaffLine ? "border-t-2 " : "border-t ") +
+                      (isStaffLine
+                        ? "border-zinc-400 dark:border-zinc-600"
+                        : "border-zinc-200 dark:border-zinc-800")
+                    }
+                  />
+                </div>
 
                 {isPicked && (
                   <div className="absolute inset-y-0 left-16 flex items-center justify-center w-[calc(100%-4rem)]">
