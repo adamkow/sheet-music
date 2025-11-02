@@ -100,7 +100,7 @@ function Staff({ label, start, end, focus, pickedNotes, onNoteToggle, onClear, c
                 data-row={k.midi}
                 aria-label={`${k.name}${k.octave}`}
                 onClick={() => onNoteToggle(k)}
-                className="group relative block h-8 w-full select-none text-left focus:outline-none"
+                className="group relative block h-[0.8rem] w-full select-none text-left focus:outline-none"
               >
                 <div className="absolute inset-0 left-16 rounded-sm transition-colors group-hover:bg-zinc-50 dark:group-hover:bg-zinc-900" />
 
@@ -119,7 +119,7 @@ function Staff({ label, start, end, focus, pickedNotes, onNoteToggle, onClear, c
                   <div className="absolute inset-y-0 left-16 flex items-center justify-center w-[calc(100%-4rem)]">
                     <div
                       className={
-                        `rounded-full ${clef === "bass" ? "bg-red-500" : "bg-blue-500"} h-[1.125rem] w-[1.125rem]`
+                        `rounded-full ${clef === "bass" ? "bg-red-500" : "bg-blue-500"} h-[1.5rem] w-[1.5rem]`
                       }
                     />
                   </div>
