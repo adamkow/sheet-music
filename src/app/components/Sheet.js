@@ -117,7 +117,11 @@ function Staff({ label, start, end, focus, pickedNotes, onNoteToggle, onClear, c
 
                 {isPicked && (
                   <div className="absolute inset-y-0 left-16 flex items-center justify-center w-[calc(100%-4rem)]">
-                    <div className="h-3 w-3 rounded-full bg-blue-500" />
+                    <div
+                      className={
+                        `rounded-full ${clef === "bass" ? "bg-red-500" : "bg-blue-500"} h-[1.125rem] w-[1.125rem]`
+                      }
+                    />
                   </div>
                 )}
 
