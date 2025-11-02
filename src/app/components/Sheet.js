@@ -54,7 +54,7 @@ function Staff({ label, start, end, focus, pickedNotes, onNoteToggle, onClear })
 
 
   return (
-    <div className="w-full h-full flex flex-col">
+    <div className="w-full h-full min-h-0 flex flex-col">
             <div className="mb-3 flex items-center justify-between">
         <div className="text-xs text-zinc-500">{label}</div>
         <div className="flex items-center gap-2">
@@ -74,7 +74,7 @@ function Staff({ label, start, end, focus, pickedNotes, onNoteToggle, onClear })
 
       <div
         ref={containerRef}
-        className="flex-1 w-full overflow-y-auto rounded-md border border-zinc-200 bg-white dark:border-zinc-800"
+        className="flex-1 min-h-0 w-full overflow-y-auto rounded-md border border-zinc-200 bg-white dark:border-zinc-800"
       >
         <div className="relative">
           {keys.map((k) => {
@@ -146,8 +146,8 @@ export default function Sheet() {
   };
 
   return (
-    <div className="w-full h-full">
-      <div className="grid h-full grid-cols-1 gap-6 md:grid-cols-2">
+    <div className="w-full h-full min-h-0">
+      <div className="grid h-full min-h-0 grid-cols-1 grid-rows-2 auto-rows-fr gap-6 md:grid-cols-2 md:grid-rows-1">
         <Staff
           label="Bass (A0–B3)"
           start={21}
