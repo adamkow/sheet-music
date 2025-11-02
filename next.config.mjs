@@ -1,11 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  output: 'export',
-  basePath: '/sheet-music-copy',
-  images: {
-    unoptimized: true,
-  },
-  reactCompiler: true,
-};
+    output: "exports",
+}
 
-export default nextConfig;
+module.exports = nextConfig
