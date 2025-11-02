@@ -1,6 +1,11 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-    output: "exports",
-}
+  output: 'export',
+  basePath: '/sheet-music',
+  assetPrefix: '/sheet-music',
+  images: {
+    unoptimized: true,
+  },
+};
 
-module.exports = nextConfig
+export default nextConfig;
