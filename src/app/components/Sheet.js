@@ -38,20 +38,13 @@ function Staff({ label, start, end, focus, pickedNotes, onNoteToggle, onClear, c
 
   useEffect(() => {
     if (!containerRef.current) return;
-    const focusInRange = Math.max(start, Math.min(end, focus));
-    const row = containerRef.current.querySelector(
-      `[data-row="${focusInRange}"]`
-    );
-    if (row) {
-      containerRef.current.scrollTo({
-        top:
-          row.offsetTop -
-          containerRef.current.clientHeight / 2 +
-          row.clientHeight / 2,
-        behavior: "auto",
-      });
+    const el = containerRef.current;
+    if (clef === "treble") {
+      el.scrollTo({ top: el.scrollHeight, behavior: "auto" });
+    } else {
+      el.scrollTo({ top: 0, behavior: "auto" });
     }
-  }, [start, end, focus]);
+  }, [clef]);
 
 
   return (
@@ -101,7 +94,7 @@ function Staff({ label, start, end, focus, pickedNotes, onNoteToggle, onClear, c
         ref={containerRef}
         className="flex-1 min-h-0 w-full overflow-y-auto rounded-md border border-zinc-200 bg-white dark:border-zinc-800"
       >
-        <div className="relative">
+        <div className="relative py-24">
           {[...keys].reverse().map((k) => {
             const isSharpActive = sharps?.includes(k.name);
             const targetMidiForRow = isSharpActive ? k.midi + 1 : k.midi;
