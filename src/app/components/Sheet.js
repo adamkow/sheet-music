@@ -31,17 +31,8 @@ function generateRange(startMidi, endMidi) {
   return out;
 }
 
-const LETTER_INDEX = { C: 0, D: 1, E: 2, F: 3, G: 4, A: 5, B: 6 };
-
-function diatonicNumber(name, octave) {
-  return octave * 7 + LETTER_INDEX[name];
-}
-
 function Staff({ label, start, end, focus, pickedNotes, onNoteToggle, onClear, clef }) {
-  const keys = useMemo(
-    () => generateRange(start, end).filter((k) => !k.isSharp),
-    [start, end]
-  );
+  const keys = useMemo(() => generateRange(start, end), [start, end]);
   const containerRef = useRef(null);
 
   useEffect(() => {
@@ -149,7 +140,7 @@ function Staff({ label, start, end, focus, pickedNotes, onNoteToggle, onClear, c
   );
 }
 
-export default function Sheet() {
+export default function Sheet({ onHighlightsChange, onActiveClefChange }) {
   const [bassNotes, setBassNotes] = useState([]);
   const [trebleNotes, setTrebleNotes] = useState([]);
 
@@ -160,7 +151,15 @@ export default function Sheet() {
     } else {
       setNotes([...notes, note]);
     }
+    onActiveClefChange?.(staff);
   };
+
+  useEffect(() => {
+    const highlights = {};
+    for (const n of bassNotes) highlights[n.midi] = "red";
+    for (const n of trebleNotes) highlights[n.midi] = "blue";
+    onHighlightsChange?.(highlights);
+  }, [bassNotes, trebleNotes, onHighlightsChange]);
 
   return (
     <div className="w-full h-full min-h-0">

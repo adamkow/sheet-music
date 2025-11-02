@@ -26,7 +26,7 @@ function buildKeyboard() {
   return { whites, blacks, whiteCount: whites.length };
 }
 
-export default function Piano({ onKey }) {
+export default function Piano({ onKey, highlights = {} }) {
   const { whites, blacks, whiteCount } = useMemo(() => buildKeyboard(), []);
   const [pressed, setPressed] = useState(null);
 
@@ -48,6 +48,8 @@ export default function Piano({ onKey }) {
         <div className="relative flex h-full w-full">
           {whites.map((k) => {
             const isPressed = pressed?.midi === k.midi;
+            const hl = highlights[k.midi];
+            const bg = hl === "red" ? "bg-red-300" : hl === "blue" ? "bg-blue-300" : isPressed ? "bg-blue-50" : "bg-white hover:bg-zinc-50";
             return (
               <button
                 key={k.midi}
@@ -55,8 +57,7 @@ export default function Piano({ onKey }) {
                 aria-label={`${k.name}${k.octave}`}
                 onClick={() => onWhiteClick(k)}
                 className={
-                  "relative flex-1 border border-zinc-300 bg-white transition-colors focus:outline-none " +
-                  (isPressed ? "bg-blue-50" : "hover:bg-zinc-50")
+                  "relative flex-1 border border-zinc-300 transition-colors focus:outline-none " + bg
                 }
               >
                 <span className="pointer-events-none absolute bottom-1 right-1 text-[10px] text-zinc-400">
@@ -74,6 +75,8 @@ export default function Piano({ onKey }) {
             // Position black key centered between its surrounding white keys
             const leftPercent = ((k.leftSlot + 0.5) / whiteCount) * 100;
             const isPressed = pressed?.midi === k.midi;
+            const hl = highlights[k.midi];
+            const bg = hl === "red" ? "bg-red-600" : hl === "blue" ? "bg-blue-600" : isPressed ? "bg-zinc-700" : "bg-black hover:bg-zinc-800";
             const widthPercent = (0.6 / whiteCount) * 100; // 60% of a white key width
             return (
               <button
@@ -82,8 +85,7 @@ export default function Piano({ onKey }) {
                 aria-label={`${k.name}${k.octave}`}
                 onClick={() => onBlackClick(k)}
                 className={
-                  "pointer-events-auto absolute -translate-x-1/2 rounded-b-md border border-zinc-800 transition-colors focus:outline-none " +
-                  (isPressed ? "bg-zinc-700" : "bg-black hover:bg-zinc-800")
+                  "pointer-events-auto absolute -translate-x-1/2 rounded-b-md border border-zinc-800 transition-colors focus:outline-none " + bg
                 }
                 style={{
                   left: `${leftPercent}%`,
