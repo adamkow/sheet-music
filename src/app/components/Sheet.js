@@ -77,7 +77,7 @@ function Staff({ label, start, end, focus, pickedNotes, onNoteToggle, onClear, c
         className="flex-1 min-h-0 w-full overflow-y-auto rounded-md border border-zinc-200 bg-white dark:border-zinc-800"
       >
         <div className="relative">
-          {keys.map((k) => {
+          {[...keys].reverse().map((k) => {
             const isPicked = pickedNotes.find((p) => p.midi === k.midi);
             const isStaffLine = (
               clef === "treble"
