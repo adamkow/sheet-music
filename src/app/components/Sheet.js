@@ -31,8 +31,17 @@ function generateRange(startMidi, endMidi) {
   return out;
 }
 
-function Staff({ label, start, end, focus, pickedNotes, onNoteToggle, onClear }) {
-  const keys = useMemo(() => generateRange(start, end), [start, end]);
+const LETTER_INDEX = { C: 0, D: 1, E: 2, F: 3, G: 4, A: 5, B: 6 };
+
+function diatonicNumber(name, octave) {
+  return octave * 7 + LETTER_INDEX[name];
+}
+
+function Staff({ label, start, end, focus, pickedNotes, onNoteToggle, onClear, clef }) {
+  const keys = useMemo(
+    () => generateRange(start, end).filter((k) => !k.isSharp),
+    [start, end]
+  );
   const containerRef = useRef(null);
 
   useEffect(() => {
@@ -80,18 +89,11 @@ function Staff({ label, start, end, focus, pickedNotes, onNoteToggle, onClear })
           {keys.map((k) => {
             const isPicked = pickedNotes.find((p) => p.midi === k.midi);
             const isOctaveStart = k.name === "C";
-            const isStaffLine = [
-              "E4",
-              "G4",
-              "B4",
-              "D5",
-              "F5",
-              "G2",
-              "B2",
-              "D3",
-              "F3",
-              "A3",
-            ].includes(`${k.name}${k.octave}`);
+            const refName = clef === "treble" ? "E" : "G";
+            const refOct = clef === "treble" ? 4 : 2;
+            const stepsFromRef =
+              diatonicNumber(k.name, k.octave) - diatonicNumber(refName, refOct);
+            const isStaffLine = Math.abs(stepsFromRef) % 2 === 0;
             return (
               <button
                 key={k.midi}
@@ -103,16 +105,18 @@ function Staff({ label, start, end, focus, pickedNotes, onNoteToggle, onClear })
               >
                 <div className="absolute inset-0 left-16 rounded-sm transition-colors group-hover:bg-zinc-50 dark:group-hover:bg-zinc-900" />
 
-                <div className="absolute inset-x-0 top-1/2 -translate-y-1/2">
-                  <div
-                    className={
-                      (isStaffLine ? "border-t-2 " : "border-t ") +
-                      (isOctaveStart
-                        ? "border-zinc-400 dark:border-zinc-600"
-                        : "border-zinc-200 dark:border-zinc-800")
-                    }
-                  />
-                </div>
+                {isStaffLine && (
+                  <div className="absolute inset-x-0 top-1/2 -translate-y-1/2">
+                    <div
+                      className={
+                        "border-t-2 " +
+                        (isOctaveStart
+                          ? "border-zinc-400 dark:border-zinc-600"
+                          : "border-zinc-200 dark:border-zinc-800")
+                      }
+                    />
+                  </div>
+                )}
 
                 {isPicked && (
                   <div className="absolute inset-y-0 left-16 flex items-center justify-center w-[calc(100%-4rem)]">
@@ -162,6 +166,7 @@ export default function Sheet() {
       <div className="grid h-full min-h-0 grid-cols-1 grid-rows-2 auto-rows-fr gap-6 md:grid-cols-2 md:grid-rows-1">
         <Staff
           label="Bass (A0–B3)"
+          clef="bass"
           start={21}
           end={59}
           focus={36}
@@ -171,6 +176,7 @@ export default function Sheet() {
         />
         <Staff
           label="Treble (C4–C8)"
+          clef="treble"
           start={60}
           end={108}
           focus={72}
