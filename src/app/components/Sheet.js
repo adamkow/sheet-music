@@ -31,8 +31,9 @@ function generateRange(startMidi, endMidi) {
   return out;
 }
 
-function Staff({ label, start, end, focus, pickedNotes, onNoteToggle, onClear, clef }) {
-  const keys = useMemo(() => generateRange(start, end), [start, end]);
+function Staff({ label, start, end, focus, pickedNotes, onNoteToggle, onClear, clef, sharps, onToggleSharp }) {
+  const [mode, setMode] = useState("notes");
+  const keys = useMemo(() => generateRange(start, end).filter((k) => !k.isSharp), [start, end]);
   const containerRef = useRef(null);
 
   useEffect(() => {
@@ -55,8 +56,32 @@ function Staff({ label, start, end, focus, pickedNotes, onNoteToggle, onClear, c
 
   return (
     <div className="w-full h-full min-h-0 flex flex-col">
-            <div className="mb-3 flex items-center justify-between">
-        <div className="text-xs text-zinc-500">{label}</div>
+      <div className="mb-3 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <div className="text-xs text-zinc-500">{label}</div>
+          <div className="flex overflow-hidden rounded-md border border-zinc-200 dark:border-zinc-800">
+            <button
+              type="button"
+              onClick={() => setMode("notes")}
+              className={
+                "px-2 py-0.5 text-xs " +
+                (mode === "notes" ? "bg-zinc-100 dark:bg-zinc-800" : "")
+              }
+            >
+              Notes
+            </button>
+            <button
+              type="button"
+              onClick={() => setMode("sharps")}
+              className={
+                "px-2 py-0.5 text-xs " +
+                (mode === "sharps" ? "bg-zinc-100 dark:bg-zinc-800" : "")
+              }
+            >
+              Sharps
+            </button>
+          </div>
+        </div>
         <div className="flex items-center gap-2">
           <span className="text-xs text-zinc-600 dark:text-zinc-400">
             {pickedNotes.length > 0 ? `${pickedNotes.length} notes` : "Tap a line"}
@@ -78,7 +103,9 @@ function Staff({ label, start, end, focus, pickedNotes, onNoteToggle, onClear, c
       >
         <div className="relative">
           {[...keys].reverse().map((k) => {
-            const isPicked = pickedNotes.find((p) => p.midi === k.midi);
+            const isSharpActive = sharps?.includes(k.name);
+            const targetMidiForRow = isSharpActive ? k.midi + 1 : k.midi;
+            const isPicked = pickedNotes.find((p) => p.midi === targetMidiForRow);
             const isStaffLine = (
               clef === "treble"
                 ? ["E4", "G4", "B4", "D5", "F5"]
@@ -90,7 +117,15 @@ function Staff({ label, start, end, focus, pickedNotes, onNoteToggle, onClear, c
                 type="button"
                 data-row={k.midi}
                 aria-label={`${k.name}${k.octave}`}
-                onClick={() => onNoteToggle(k)}
+                onClick={() => {
+                  if (mode === "sharps") {
+                    onToggleSharp?.(k.name);
+                    return;
+                  }
+                  const useMidi = isSharpActive ? k.midi + 1 : k.midi;
+                  const noteObj = { midi: useMidi, ...midiToNote(useMidi) };
+                  onNoteToggle(noteObj);
+                }}
                 className="group relative block h-[0.8rem] w-full select-none text-left focus:outline-none"
               >
                 <div className="absolute inset-0 left-16 rounded-sm transition-colors group-hover:bg-zinc-50 dark:group-hover:bg-zinc-900" />
@@ -128,6 +163,7 @@ function Staff({ label, start, end, focus, pickedNotes, onNoteToggle, onClear, c
                     }
                   >
                     {k.name}
+                    {isSharpActive ? "#" : ""}
                     {k.octave}
                   </span>
                 </div>
@@ -143,6 +179,8 @@ function Staff({ label, start, end, focus, pickedNotes, onNoteToggle, onClear, c
 export default function Sheet({ onHighlightsChange, onActiveClefChange }) {
   const [bassNotes, setBassNotes] = useState([]);
   const [trebleNotes, setTrebleNotes] = useState([]);
+  const [bassSharps, setBassSharps] = useState([]);
+  const [trebleSharps, setTrebleSharps] = useState([]);
 
   const handleNoteToggle = (note, staff) => {
     const [notes, setNotes] = staff === "bass" ? [bassNotes, setBassNotes] : [trebleNotes, setTrebleNotes];
@@ -161,6 +199,18 @@ export default function Sheet({ onHighlightsChange, onActiveClefChange }) {
     onHighlightsChange?.(highlights);
   }, [bassNotes, trebleNotes, onHighlightsChange]);
 
+  const toggleSharp = (letter, staff) => {
+    if (staff === "bass") {
+      setBassSharps((prev) =>
+        prev.includes(letter) ? prev.filter((l) => l !== letter) : [...prev, letter]
+      );
+    } else {
+      setTrebleSharps((prev) =>
+        prev.includes(letter) ? prev.filter((l) => l !== letter) : [...prev, letter]
+      );
+    }
+  };
+
   return (
     <div className="w-full h-full min-h-0">
       <div className="grid h-full min-h-0 grid-cols-1 grid-rows-2 auto-rows-fr gap-6 md:grid-cols-2 md:grid-rows-1">
@@ -173,6 +223,8 @@ export default function Sheet({ onHighlightsChange, onActiveClefChange }) {
           pickedNotes={bassNotes}
           onNoteToggle={(note) => handleNoteToggle(note, "bass")}
           onClear={() => setBassNotes([])}
+          sharps={bassSharps}
+          onToggleSharp={(letter) => toggleSharp(letter, "bass")}
         />
         <Staff
           label="Treble (C4–C8)"
@@ -183,6 +235,8 @@ export default function Sheet({ onHighlightsChange, onActiveClefChange }) {
           pickedNotes={trebleNotes}
           onNoteToggle={(note) => handleNoteToggle(note, "treble")}
           onClear={() => setTrebleNotes([])}
+          sharps={trebleSharps}
+          onToggleSharp={(letter) => toggleSharp(letter, "treble")}
         />
       </div>
       <div className="mt-2 flex items-center gap-2 text-xs text-zinc-500">
