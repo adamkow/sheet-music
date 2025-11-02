@@ -134,15 +134,21 @@ function Staff({ label, start, end, focus, pickedNotes, onNoteToggle, onClear, c
                   />
                 </div>
 
-                {isPicked && (
-                  <div className="absolute inset-y-0 left-16 flex items-center justify-center w-[calc(100%-4rem)]">
-                    <div
-                      className={
-                        `rounded-full ${clef === "bass" ? "bg-red-500" : "bg-blue-500"} h-[1.5rem] w-[1.5rem]`
-                      }
-                    />
-                  </div>
-                )}
+                {mode === "sharps"
+                  ? isSharpActive && (
+                      <div className="absolute inset-y-0 left-16 flex items-center justify-center w-[calc(100%-4rem)]">
+                        <span className="text-lg font-semibold text-black">#</span>
+                      </div>
+                    )
+                  : isPicked && (
+                      <div className="absolute inset-y-0 left-16 flex items-center justify-center w-[calc(100%-4rem)]">
+                        <div
+                          className={
+                            `rounded-full ${clef === "bass" ? "bg-red-500" : "bg-blue-500"} h-[1.5rem] w-[1.5rem]`
+                          }
+                        />
+                      </div>
+                    )}
 
                 <div className="absolute left-0 top-0 flex h-full w-16 items-center justify-end pr-2">
                   <span
