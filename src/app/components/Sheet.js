@@ -31,7 +31,7 @@ function generateRange(startMidi, endMidi) {
   return out;
 }
 
-function Staff({ label, start, end, focus, pickedNotes, onNoteToggle, onClear, clef, sharps, onToggleSharp }) {
+function Staff({ label, start, end, focus, pickedNotes, onNoteToggle, onClear, clef, sharps, flats, onToggleSharp, onToggleFlat }) {
   const [mode, setMode] = useState("notes");
   const keys = useMemo(() => generateRange(start, end).filter((k) => !k.isSharp), [start, end]);
   const containerRef = useRef(null);
@@ -73,6 +73,16 @@ function Staff({ label, start, end, focus, pickedNotes, onNoteToggle, onClear, c
             >
               Sharps
             </button>
+            <button
+              type="button"
+              onClick={() => setMode("flats")}
+              className={
+                "px-2 py-0.5 text-xs " +
+                (mode === "flats" ? "bg-zinc-100 dark:bg-zinc-800" : "")
+              }
+            >
+              Flats
+            </button>
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -97,7 +107,8 @@ function Staff({ label, start, end, focus, pickedNotes, onNoteToggle, onClear, c
         <div className="relative py-24">
           {[...keys].reverse().map((k) => {
             const isSharpActive = sharps?.includes(k.name);
-            const targetMidiForRow = isSharpActive ? k.midi + 1 : k.midi;
+            const isFlatActive = flats?.includes(k.name);
+            const targetMidiForRow = isSharpActive ? k.midi + 1 : isFlatActive ? k.midi - 1 : k.midi;
             const isPicked = pickedNotes.find((p) => p.midi === targetMidiForRow);
             const isStaffLine = (
               clef === "treble"
@@ -115,7 +126,11 @@ function Staff({ label, start, end, focus, pickedNotes, onNoteToggle, onClear, c
                     onToggleSharp?.(k.name);
                     return;
                   }
-                  const useMidi = isSharpActive ? k.midi + 1 : k.midi;
+                  if (mode === "flats") {
+                    onToggleFlat?.(k.name);
+                    return;
+                  }
+                  const useMidi = isSharpActive ? k.midi + 1 : isFlatActive ? k.midi - 1 : k.midi;
                   const noteObj = { midi: useMidi, ...midiToNote(useMidi) };
                   onNoteToggle(noteObj);
                 }}
@@ -126,7 +141,7 @@ function Staff({ label, start, end, focus, pickedNotes, onNoteToggle, onClear, c
                 <div className="absolute inset-x-0 top-1/2 -translate-y-1/2">
                   <div
                     className={
-                      (isStaffLine ? "border-t-2 " : "border-t ") +
+                      (isStaffLine ? "border-t-[5px] " : "border-t ") +
                       (isStaffLine
                         ? "border-zinc-400 dark:border-zinc-600"
                         : "border-zinc-200 dark:border-zinc-800")
@@ -137,7 +152,13 @@ function Staff({ label, start, end, focus, pickedNotes, onNoteToggle, onClear, c
                 {mode === "sharps"
                   ? isSharpActive && (
                       <div className="absolute inset-y-0 left-16 flex items-center justify-center w-[calc(100%-4rem)]">
-                        <span className="text-lg font-semibold text-black">#</span>
+                        <span className="text-lg font-semibold text-black dark:text-white">#</span>
+                      </div>
+                    )
+                  : mode === "flats"
+                  ? isFlatActive && (
+                      <div className="absolute inset-y-0 left-16 flex items-center justify-center w-[calc(100%-4rem)]">
+                        <span className="text-lg font-semibold text-black dark:text-white">♭</span>
                       </div>
                     )
                   : isPicked && (
@@ -162,7 +183,7 @@ function Staff({ label, start, end, focus, pickedNotes, onNoteToggle, onClear, c
                     }
                   >
                     {k.name}
-                    {isSharpActive ? "#" : ""}
+                    {isSharpActive ? "#" : isFlatActive ? "♭" : ""}
                     {k.octave}
                   </span>
                 </div>
@@ -180,6 +201,8 @@ export default function Sheet({ onHighlightsChange, onActiveClefChange }) {
   const [trebleNotes, setTrebleNotes] = useState([]);
   const [bassSharps, setBassSharps] = useState([]);
   const [trebleSharps, setTrebleSharps] = useState([]);
+  const [bassFlats, setBassFlats] = useState([]);
+  const [trebleFlats, setTrebleFlats] = useState([]);
 
   const handleNoteToggle = (note, staff) => {
     const [notes, setNotes] = staff === "bass" ? [bassNotes, setBassNotes] : [trebleNotes, setTrebleNotes];
@@ -210,6 +233,18 @@ export default function Sheet({ onHighlightsChange, onActiveClefChange }) {
     }
   };
 
+  const toggleFlat = (letter, staff) => {
+    if (staff === "bass") {
+      setBassFlats((prev) =>
+        prev.includes(letter) ? prev.filter((l) => l !== letter) : [...prev, letter]
+      );
+    } else {
+      setTrebleFlats((prev) =>
+        prev.includes(letter) ? prev.filter((l) => l !== letter) : [...prev, letter]
+      );
+    }
+  };
+
   return (
     <div className="w-full h-full min-h-0">
       <div className="grid h-full min-h-0 grid-cols-1 grid-rows-2 auto-rows-fr gap-6 md:grid-cols-2 md:grid-rows-1">
@@ -223,7 +258,9 @@ export default function Sheet({ onHighlightsChange, onActiveClefChange }) {
           onNoteToggle={(note) => handleNoteToggle(note, "bass")}
           onClear={() => setBassNotes([])}
           sharps={bassSharps}
+          flats={bassFlats}
           onToggleSharp={(letter) => toggleSharp(letter, "bass")}
+          onToggleFlat={(letter) => toggleFlat(letter, "bass")}
         />
         <Staff
           label="Treble (C4–C8)"
@@ -235,7 +272,9 @@ export default function Sheet({ onHighlightsChange, onActiveClefChange }) {
           onNoteToggle={(note) => handleNoteToggle(note, "treble")}
           onClear={() => setTrebleNotes([])}
           sharps={trebleSharps}
+          flats={trebleFlats}
           onToggleSharp={(letter) => toggleSharp(letter, "treble")}
+          onToggleFlat={(letter) => toggleFlat(letter, "treble")}
         />
       </div>
       <div className="mt-2 flex items-center gap-2 text-xs text-zinc-500">
