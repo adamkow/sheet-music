@@ -152,13 +152,13 @@ function Staff({ label, start, end, focus, pickedNotes, onNoteToggle, onClear, c
                 {mode === "sharps"
                   ? isSharpActive && (
                       <div className="absolute inset-y-0 left-16 flex items-center justify-center w-[calc(100%-4rem)]">
-                        <span className="text-lg font-semibold text-black dark:text-white">#</span>
+                        <span className="text-lg font-semibold text-black">#</span>
                       </div>
                     )
                   : mode === "flats"
                   ? isFlatActive && (
                       <div className="absolute inset-y-0 left-16 flex items-center justify-center w-[calc(100%-4rem)]">
-                        <span className="text-lg font-semibold text-black dark:text-white">♭</span>
+                        <span className="text-lg font-semibold text-black">♭</span>
                       </div>
                     )
                   : isPicked && (
@@ -216,8 +216,17 @@ export default function Sheet({ onHighlightsChange, onActiveClefChange }) {
 
   useEffect(() => {
     const highlights = {};
-    for (const n of bassNotes) highlights[n.midi] = "red";
-    for (const n of trebleNotes) highlights[n.midi] = "blue";
+    const bassSet = new Set(bassNotes.map(n => n.midi));
+    const trebleSet = new Set(trebleNotes.map(n => n.midi));
+    
+    for (const n of bassNotes) {
+      highlights[n.midi] = trebleSet.has(n.midi) ? "purple" : "red";
+    }
+    for (const n of trebleNotes) {
+      if (!highlights[n.midi]) {
+        highlights[n.midi] = "blue";
+      }
+    }
     onHighlightsChange?.(highlights);
   }, [bassNotes, trebleNotes, onHighlightsChange]);
 
@@ -249,10 +258,10 @@ export default function Sheet({ onHighlightsChange, onActiveClefChange }) {
     <div className="w-full h-full min-h-0">
       <div className="grid h-full min-h-0 grid-cols-1 grid-rows-2 auto-rows-fr gap-6 md:grid-cols-2 md:grid-rows-1">
         <Staff
-          label="Bass (A0–B3)"
+          label="Bass (A0–C5)"
           clef="bass"
           start={21}
-          end={59}
+          end={72}
           focus={36}
           pickedNotes={bassNotes}
           onNoteToggle={(note) => handleNoteToggle(note, "bass")}
@@ -263,9 +272,9 @@ export default function Sheet({ onHighlightsChange, onActiveClefChange }) {
           onToggleFlat={(letter) => toggleFlat(letter, "bass")}
         />
         <Staff
-          label="Treble (C4–C8)"
+          label="Treble (C3–C8)"
           clef="treble"
-          start={60}
+          start={48}
           end={108}
           focus={72}
           pickedNotes={trebleNotes}

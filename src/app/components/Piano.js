@@ -49,7 +49,7 @@ export default function Piano({ onKey, highlights = {} }) {
           {whites.map((k) => {
             const isPressed = pressed?.midi === k.midi;
             const hl = highlights[k.midi];
-            const bg = hl === "red" ? "bg-red-300" : hl === "blue" ? "bg-blue-300" : isPressed ? "bg-blue-50" : "bg-white hover:bg-zinc-50";
+            const bg = hl === "purple" ? "bg-purple-300" : hl === "red" ? "bg-red-300" : hl === "blue" ? "bg-blue-300" : isPressed ? "bg-blue-50" : "bg-white hover:bg-zinc-50";
             return (
               <button
                 key={k.midi}
@@ -76,7 +76,7 @@ export default function Piano({ onKey, highlights = {} }) {
             const leftPercent = ((k.leftSlot + 0.5) / whiteCount) * 100;
             const isPressed = pressed?.midi === k.midi;
             const hl = highlights[k.midi];
-            const bg = hl === "red" ? "bg-red-600" : hl === "blue" ? "bg-blue-600" : isPressed ? "bg-zinc-700" : "bg-black hover:bg-zinc-800";
+            const bg = hl === "purple" ? "bg-purple-600" : hl === "red" ? "bg-red-600" : hl === "blue" ? "bg-blue-600" : isPressed ? "bg-zinc-700" : "bg-black hover:bg-zinc-800";
             const widthPercent = (0.6 / whiteCount) * 100; // 60% of a white key width
             return (
               <button
